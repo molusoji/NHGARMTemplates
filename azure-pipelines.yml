@@ -17,4 +17,15 @@ jobs:
         steps:
         - checkout: self 
         - script: echo my deployment
-
+     
+        - task: AzureRmWebAppDeployment@4
+          inputs:
+           ConnectionType: 'AzureRM'
+           azureSubscription: 'antarcticconnectionsltd(1)(291bd6c1-cf2e-49e6-bb7c-1e1affd2eb35)'
+           appType: 'webApp'
+           WebAppName: 'nhgwebapp'
+           deployToSlotOrASE: true
+           ResourceGroupName: 'armrg'
+           SlotName: 'demo-app65'
+           VirtualApplication: 'nhgwebapp'
+           packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'

@@ -1,0 +1,49 @@
+
+trigger:  none
+pool:
+  vmImage: ubuntu-latest
+jobs:
+ 
+- deployment: 
+  environment: main
+  pool: 
+    name: nhgwebapp
+  strategy:                  
+    canary:      
+      increments: [10,20]  
+      preDeploy:                                     
+        steps:           
+        - script: initialize, cleanup....   
+      deploy:             
+        steps: 
+        - script: echo deploy updates...
+       - task:
+          inputs: 
+            action: $(strategy.action)       
+            namespace: 'default' 
+            strategy: $(strategy.name) 
+            percentage: $(strategy.increment) 
+            manifests: 'manifest.yml' 
+      postRouteTraffic: 
+        pool: server 
+        steps:           
+        - script: echo monitor application health...   
+      on: 
+        failure: 
+          steps: 
+          - script: echo clean-up, rollback...   
+        success: 
+          steps: 
+          - script: echo checks passed, notify...
+          
+        - task: AzureRmWebAppDeployment@4
+          inputs:
+           ConnectionType: 'AzureRM'
+           azureSubscription: 'antarcticconnectionsltd(1)(291bd6c1-cf2e-49e6-bb7c-1e1affd2eb35)'
+           appType: 'webApp'
+           WebAppName: 'nhgwebapp'
+           deployToSlotOrASE: true
+           ResourceGroupName: 'armrg'
+           SlotName: 'demo-app65'
+           VirtualApplication: 'nhgwebapp'
+           packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
